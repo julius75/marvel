@@ -16,7 +16,7 @@ class CreateSalesTable extends Migration
         Schema::create('sales', function (Blueprint $table) {
             $table->id();
             $table->string('InvoiceNo');
-            $table->string('StockCode');
+            $table->string('StockCode')->nullable();
             $table->string('Description');
             $table->string('Quantity');
             $table->string('InvoiceDate');

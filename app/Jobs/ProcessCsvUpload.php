@@ -34,29 +34,55 @@ class ProcessCsvUpload implements ShouldQueue
      */
     public function handle()
     {
-        Redis::throttle('upload-csv')->allow(1)->every(20)->then(function () {
-            dump('processing this file:---',$this->file);
-            $data = array_map('str_getcsv',file($this->file));
+        Redis::throttle('upload-csv')
+            ->block(0)->allow(1)->every(20)
+            ->then(function ()  {
+                dump('processing this file:---',$this->file);
+                $data = array_map('str_getcsv',file($this->file));
 
-            foreach($data as $row){
-                Sale::updateOrCreate([
-                    'InvoiceNo' => $row[0]
-                ],[
-                    'StockCode' => $row[1],
-                    'Description' => $row[2],
-                    'Quantity' => $row[3],
-                    'InvoiceDate' => $row[4],
-                    'UnitPrice' => $row[5],
-                    'CustomerID' => $row[6],
-                    'Country' => $row[7],
+                foreach($data as $row){
+                    Sale::updateOrCreate([
+                        'InvoiceNo' => $row[0]
+                    ],[
+                        'StockCode' => $row[1],
+                        'Description' => $row[2],
+                        'Quantity' => $row[3],
+                        'InvoiceDate' => $row[4],
+                        'UnitPrice' => $row[5],
+                        'CustomerID' => $row[6],
+                        'Country' => $row[7],
 
-                ]);
-            }
-            dump('done processing this:---',$this->file);
-            unlink($this->file);
-        }, function () {
-
-            return $this->release(10);
-        });
+                    ]);
+                }
+                dump('done processing this:---',$this->file);
+                unlink($this->file);
+            }, function (){
+                return $this->release(10);
+            });
+//        Redis::throttle('upload-csv')->allow(1)->every(20)
+//            ->then(function () {
+//            dump('processing this file:---',$this->file);
+//            $data = array_map('str_getcsv',file($this->file));
+//
+//            foreach($data as $row){
+//                Sale::updateOrCreate([
+//                    'InvoiceNo' => $row[0]
+//                ],[
+//                    'StockCode' => $row[1],
+//                    'Description' => $row[2],
+//                    'Quantity' => $row[3],
+//                    'InvoiceDate' => $row[4],
+//                    'UnitPrice' => $row[5],
+//                    'CustomerID' => $row[6],
+//                    'Country' => $row[7],
+//
+//                ]);
+//            }
+//            dump('done processing this:---',$this->file);
+//            unlink($this->file);
+//        }, function () {
+//
+//            return $this->release(10);
+//        });
 }
 }
